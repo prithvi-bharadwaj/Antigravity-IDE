@@ -107,8 +107,19 @@ public class AntigravityScriptEditor : IExternalCodeEditor
         try
         {
             Process process = new Process();
-            process.StartInfo.FileName = GetExecutablePath(installation);
-            process.StartInfo.Arguments = arguments;
+            
+            // Handle macOS .app bundles specifically
+            if (installation.EndsWith(".app") && Application.platform == RuntimePlatform.OSXEditor)
+            {
+                process.StartInfo.FileName = "/usr/bin/open";
+                process.StartInfo.Arguments = $"-a \"{installation}\" -n --args {arguments}";
+            }
+            else
+            {
+                process.StartInfo.FileName = GetExecutablePath(installation);
+                process.StartInfo.Arguments = arguments;
+            }
+
             process.StartInfo.UseShellExecute = false;
             process.StartInfo.CreateNoWindow = true;
             process.Start();
