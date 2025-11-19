@@ -14,19 +14,17 @@ public class AntigravityScriptEditor : IExternalCodeEditor
     static readonly string[] KnownPaths =
     {
         "/Applications/Antigravity.app",
-        "/Applications/Antigravity.app/Contents/MacOS/Antigravity",
-        // Add other potential paths here
+        "/Applications/Antigravity.app/Contents/MacOS/Antigravity"
     };
 
     static AntigravityScriptEditor()
     {
         CodeEditor.Register(new AntigravityScriptEditor());
-        // Auto-set as default if installed and not already set
+        
         string current = EditorPrefs.GetString("kScriptsDefaultApp");
         if (IsAntigravityInstalled() && !current.Contains(EditorName))
         {
-            // Optional: Force set or just notify. For now, we just register.
-            // To force set: EditorPrefs.SetString("kScriptsDefaultApp", FoundPath);
+            // Registration handles availability; user preference is respected unless explicitly changed.
         }
     }
 
@@ -39,14 +37,8 @@ public class AntigravityScriptEditor : IExternalCodeEditor
     {
         if (path.EndsWith(".app"))
         {
-            // On Mac, point to the executable inside the .app
-            // Adjust this if Antigravity has a specific CLI entry point
             string executable = Path.Combine(path, "Contents", "MacOS", "Antigravity");
-            if (File.Exists(executable)) return executable;
-            
-            // Fallback: maybe the .app itself is handled by 'open' command, 
-            // but for Process.Start we usually need the binary.
-            return path; 
+            return File.Exists(executable) ? executable : path;
         }
         return path;
     }
@@ -100,7 +92,6 @@ public class AntigravityScriptEditor : IExternalCodeEditor
         }
         else
         {
-            // Format: file:line:column (Standard for many editors, adjust for Antigravity)
             arguments = $"\"{filePath}:{line}:{column}\"";
         }
 

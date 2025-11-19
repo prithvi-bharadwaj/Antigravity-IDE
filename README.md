@@ -1,6 +1,6 @@
 # Antigravity IDE Support for Unity
 
-This package integrates **Antigravity** as an external script editor for Unity, providing seamless file opening and project generation for Intellisense.
+Integrates **Antigravity** as an external script editor for Unity, providing seamless file opening and project generation for Intellisense.
 
 ## Features
 - **Auto-Discovery**: Automatically detects Antigravity installation on macOS.
@@ -15,7 +15,6 @@ This package integrates **Antigravity** as an external script editor for Unity, 
 2.  Go to **Window > Package Manager**.
 3.  Click the **+** icon > **Add package from git URL...**.
 4.  Enter the URL of this repository: `https://github.com/prithvi-bharadwaj/Antigravity-IDE.git`
-    *   *Note: If you moved the package into a subfolder within the repo, append `?path=/Foldername`.*
 
 ### via Disk
 1.  Open **Window > Package Manager**.
@@ -28,5 +27,5 @@ Once installed, go to **Unity > Preferences > External Tools**.
 - If it doesn't appear automatically, ensure Antigravity is installed in `/Applications/Antigravity.app`.
 
 ## Troubleshooting
-- **Editor not found**: The package looks for `/Applications/Antigravity.app`. If installed elsewhere, you may need to modify `Editor/AntigravityScriptEditor.cs`.
-- **No Intellisense**: Ensure `Generate .csproj files` is checked (handled automatically by this package's sync).
+- **Editor not found**: The package looks for `/Applications/Antigravity.app`. If installed elsewhere, ensure the path is correct or manually select the executable.
+- **No Intellisense**: Ensure `Generate .csproj files` is checked in Unity Preferences.

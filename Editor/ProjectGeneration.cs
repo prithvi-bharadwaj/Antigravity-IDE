@@ -11,7 +11,6 @@ public static class ProjectGeneration
 {
     public static void Sync()
     {
-        // Regenerate everything
         var assemblies = CompilationPipeline.GetAssemblies();
         foreach (var assembly in assemblies)
         {
@@ -22,7 +21,6 @@ public static class ProjectGeneration
 
     public static void SyncIfNeeded(string[] addedAssets, string[] deletedAssets, string[] movedAssets, string[] movedFromAssetPaths, string[] importedAssets)
     {
-        // For now, just simple sync. Optimization can be added later.
         Sync();
     }
 
@@ -34,13 +32,12 @@ public static class ProjectGeneration
         sb.AppendLine("<?xml version=\"1.0\" encoding=\"utf-8\"?>");
         sb.AppendLine("<Project ToolsVersion=\"4.0\" DefaultTargets=\"Build\" xmlns=\"http://schemas.microsoft.com/developer/msbuild/2003\">");
         
-        // PropertyGroup
         sb.AppendLine("  <PropertyGroup>");
         sb.AppendLine("    <Configuration Condition=\" '$(Configuration)' == '' \">Debug</Configuration>");
         sb.AppendLine("    <Platform Condition=\" '$(Platform)' == '' \">AnyCPU</Platform>");
         sb.AppendLine("    <ProductVersion>10.0.20506</ProductVersion>");
         sb.AppendLine("    <SchemaVersion>2.0</SchemaVersion>");
-        sb.AppendLine($"    <ProjectGuid>{{{Guid.NewGuid()}}}</ProjectGuid>"); // Ideally stable GUID based on name
+        sb.AppendLine($"    <ProjectGuid>{{{GenerateGuid(assembly.name)}}}</ProjectGuid>");
         sb.AppendLine("    <OutputType>Library</OutputType>");
         sb.AppendLine($"    <AssemblyName>{assembly.name}</AssemblyName>");
         sb.AppendLine("    <TargetFrameworkVersion>v4.7.1</TargetFrameworkVersion>");
@@ -48,7 +45,6 @@ public static class ProjectGeneration
         sb.AppendLine("    <BaseDirectory>.</BaseDirectory>");
         sb.AppendLine("  </PropertyGroup>");
 
-        // References
         sb.AppendLine("  <ItemGroup>");
         foreach (var reference in assembly.compiledAssemblyReferences)
         {
@@ -56,11 +52,8 @@ public static class ProjectGeneration
             sb.AppendLine($"      <HintPath>{reference}</HintPath>");
             sb.AppendLine("    </Reference>");
         }
-        // Add Unity references (simplified)
-        // In a real implementation, we'd iterate over assembly.allReferences or similar
         sb.AppendLine("  </ItemGroup>");
 
-        // Compile Items (Source Files)
         sb.AppendLine("  <ItemGroup>");
         foreach (var sourceFile in assembly.sourceFiles)
         {
@@ -68,12 +61,11 @@ public static class ProjectGeneration
         }
         sb.AppendLine("  </ItemGroup>");
         
-        // Project References
         sb.AppendLine("  <ItemGroup>");
         foreach (var refAssembly in assembly.assemblyReferences)
         {
              sb.AppendLine($"    <ProjectReference Include=\"{refAssembly.name}.csproj\">");
-             sb.AppendLine($"      <Project>{{{Guid.NewGuid()}}}</Project>"); // Needs stable GUID
+             sb.AppendLine($"      <Project>{{{GenerateGuid(refAssembly.name)}}}</Project>");
              sb.AppendLine($"      <Name>{refAssembly.name}</Name>");
              sb.AppendLine("    </ProjectReference>");
         }
@@ -94,11 +86,20 @@ public static class ProjectGeneration
         
         foreach (var assembly in assemblies)
         {
-            string guid = Guid.NewGuid().ToString(); // Needs stable GUID
+            string guid = GenerateGuid(assembly.name);
             sb.AppendLine($"Project(\"{{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}}\") = \"{assembly.name}\", \"{assembly.name}.csproj\", \"{{{guid}}}\"");
             sb.AppendLine("EndProject");
         }
         
         File.WriteAllText(solutionPath, sb.ToString());
+    }
+
+    private static string GenerateGuid(string input)
+    {
+        using (var md5 = System.Security.Cryptography.MD5.Create())
+        {
+            byte[] hash = md5.ComputeHash(Encoding.Default.GetBytes(input));
+            return new Guid(hash).ToString().ToUpper();
+        }
     }
 }
