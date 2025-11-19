@@ -126,9 +126,9 @@ public class AntigravityScriptEditor : IExternalCodeEditor
         ProjectGeneration.Sync();
     }
 
-    public void SyncIfNeeded(string[] addedAssets, string[] deletedAssets, string[] movedAssets, string[] movedFromAssetPaths)
+    public void SyncIfNeeded(string[] addedAssets, string[] deletedAssets, string[] movedAssets, string[] movedFromAssetPaths, string[] importedAssets)
     {
-        ProjectGeneration.SyncIfNeeded(addedAssets, deletedAssets, movedAssets, movedFromAssetPaths);
+        ProjectGeneration.SyncIfNeeded(addedAssets, deletedAssets, movedAssets, movedFromAssetPaths, importedAssets);
     }
 
     public bool TryGetInstallationForPath(string editorPath, out CodeEditor.Installation installation)

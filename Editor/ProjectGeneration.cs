@@ -20,7 +20,7 @@ public static class ProjectGeneration
         GenerateSolution(assemblies);
     }
 
-    public static void SyncIfNeeded(string[] addedAssets, string[] deletedAssets, string[] movedAssets, string[] movedFromAssetPaths)
+    public static void SyncIfNeeded(string[] addedAssets, string[] deletedAssets, string[] movedAssets, string[] movedFromAssetPaths, string[] importedAssets)
     {
         // For now, just simple sync. Optimization can be added later.
         Sync();
