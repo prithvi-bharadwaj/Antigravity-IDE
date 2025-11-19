@@ -14,7 +14,8 @@ This package integrates **Antigravity** as an external script editor for Unity, 
 1.  Open Unity.
 2.  Go to **Window > Package Manager**.
 3.  Click the **+** icon > **Add package from git URL...**.
-4.  Enter the URL of this repository (e.g., `https://github.com/username/repo.git?path=/com.antigravity.ide` if inside a subfolder, or just the repo URL if root).
+4.  Enter the URL of this repository: `https://github.com/prithvi-bharadwaj/Antigravity-IDE.git`
+    *   *Note: If you moved the package into a subfolder within the repo, append `?path=/Foldername`.*
 
 ### via Disk
 1.  Open **Window > Package Manager**.
