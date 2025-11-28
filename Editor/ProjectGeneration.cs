@@ -163,6 +163,19 @@ public class ProjectGeneration : IGenerator
         return k_ReimportSyncExtensions.Contains(new FileInfo(asset).Extension);
     }
 
+    // [Anmol V] Settings class to handle project generation preferences
+    public static class Settings
+    {
+        public static bool Embedded { get { return EditorPrefs.GetBool("Antigravity_Embedded", true); } set { EditorPrefs.SetBool("Antigravity_Embedded", value); } }
+        public static bool Local { get { return EditorPrefs.GetBool("Antigravity_Local", true); } set { EditorPrefs.SetBool("Antigravity_Local", value); } }
+        public static bool Registry { get { return EditorPrefs.GetBool("Antigravity_Registry", false); } set { EditorPrefs.SetBool("Antigravity_Registry", value); } }
+        public static bool Git { get { return EditorPrefs.GetBool("Antigravity_Git", false); } set { EditorPrefs.SetBool("Antigravity_Git", value); } }
+        public static bool BuiltIn { get { return EditorPrefs.GetBool("Antigravity_BuiltIn", false); } set { EditorPrefs.SetBool("Antigravity_BuiltIn", value); } }
+        public static bool LocalTarball { get { return EditorPrefs.GetBool("Antigravity_LocalTarball", false); } set { EditorPrefs.SetBool("Antigravity_LocalTarball", value); } }
+        public static bool Unknown { get { return EditorPrefs.GetBool("Antigravity_Unknown", false); } set { EditorPrefs.SetBool("Antigravity_Unknown", value); } }
+        public static bool PlayerProjects { get { return EditorPrefs.GetBool("Antigravity_PlayerProjects", false); } set { EditorPrefs.SetBool("Antigravity_PlayerProjects", value); } }
+    }
+
     public void GenerateAndWriteSolutionAndProjects()
     {
         // Only sync if we can
@@ -171,6 +184,13 @@ public class ProjectGeneration : IGenerator
 
         foreach (var assembly in assemblies)
         {
+            if (!ShouldFileBePartOfSolution(assembly.name)) // Basic check
+                continue;
+
+            // [Anmol V] Filter assemblies based on settings
+            if (!ShouldSyncAssembly(assembly))
+                continue;
+
             var projectContent = GenerateProject(assembly, allAssetPaths);
             File.WriteAllText(Path.Combine(ProjectDirectory, $"{assembly.name}.csproj"), projectContent);
         }
@@ -179,8 +199,36 @@ public class ProjectGeneration : IGenerator
         File.WriteAllText(SolutionFile(), solutionContent);
     }
 
+    // [Anmol V] Helper to determine if an assembly should be synced based on its source
+    bool ShouldSyncAssembly(Assembly assembly)
+    {
+        // We need to find the package info for this assembly
+        // Since an assembly can contain multiple files, we check the first source file
+        if (assembly.sourceFiles.Length == 0) return false;
+
+        var info = UnityEditor.PackageManager.PackageInfo.FindForAssetPath(assembly.sourceFiles[0]);
+        if (info == null)
+        {
+            // If no package info, it's likely a local project asset (Assets/...)
+            return true; 
+        }
+
+        switch (info.source)
+        {
+            case UnityEditor.PackageManager.PackageSource.Embedded: return Settings.Embedded;
+            case UnityEditor.PackageManager.PackageSource.Local: return Settings.Local;
+            case UnityEditor.PackageManager.PackageSource.Registry: return Settings.Registry;
+            case UnityEditor.PackageManager.PackageSource.Git: return Settings.Git;
+            case UnityEditor.PackageManager.PackageSource.BuiltIn: return Settings.BuiltIn;
+            case UnityEditor.PackageManager.PackageSource.LocalTarball: return Settings.LocalTarball;
+            case UnityEditor.PackageManager.PackageSource.Unknown: return Settings.Unknown;
+            default: return false;
+        }
+    }
+
     string GenerateProject(Assembly assembly, string[] allAssetPaths)
     {
+
         var projectBuilder = new StringBuilder();
         projectBuilder.AppendLine("<?xml version=\"1.0\" encoding=\"utf-8\"?>");
         projectBuilder.AppendLine("<Project ToolsVersion=\"4.0\" DefaultTargets=\"Build\" xmlns=\"http://schemas.microsoft.com/developer/msbuild/2003\">");
@@ -240,6 +288,9 @@ public class ProjectGeneration : IGenerator
         
         foreach (var assembly in assemblies)
         {
+            // [Anmol V] Filter assemblies in solution too
+            if (!ShouldSyncAssembly(assembly)) continue;
+
             string guid = GenerateGuid(assembly.name);
             sb.AppendFormat(m_SolutionProjectEntryTemplate, "{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}", assembly.name, $"{assembly.name}.csproj", $"{{{guid}}}");
             sb.AppendLine();
@@ -253,6 +304,9 @@ public class ProjectGeneration : IGenerator
         sb.AppendLine("    GlobalSection(ProjectConfigurationPlatforms) = postSolution");
         foreach (var assembly in assemblies)
         {
+            // [Anmol V] Filter assemblies in solution too
+            if (!ShouldSyncAssembly(assembly)) continue;
+
             string guid = GenerateGuid(assembly.name);
             sb.AppendFormat(m_SolutionProjectConfigurationTemplate, $"{{{guid}}}");
             sb.AppendLine();

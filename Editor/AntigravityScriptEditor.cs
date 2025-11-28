@@ -15,7 +15,15 @@ public class AntigravityScriptEditor : IExternalCodeEditor
     static readonly string[] KnownPaths =
     {
         "/Applications/Antigravity.app",
-        "/Applications/Antigravity.app/Contents/MacOS/Antigravity"
+        "/Applications/Antigravity.app/Contents/MacOS/Antigravity",
+        // [Anmol V] Windows paths
+        Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData) + "/Programs/Antigravity/Antigravity.exe",
+        Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles) + "/Antigravity/Antigravity.exe",
+        Environment.GetFolderPath(Environment.SpecialFolder.ProgramFilesX86) + "/Antigravity/Antigravity.exe",
+        // [Anmol V] Linux paths
+        "/usr/bin/antigravity",
+        "/usr/local/bin/antigravity",
+        "/snap/bin/antigravity"
     };
 
     static AntigravityScriptEditor()
@@ -86,11 +94,32 @@ public class AntigravityScriptEditor : IExternalCodeEditor
         // Perform any initialization here if needed
     }
 
+    // [Anmol V] Added GUI for advanced project generation settings
     public void OnGUI()
     {
-        // Custom GUI for Preferences > External Tools
+        GUILayout.BeginVertical();
         GUILayout.Label("Antigravity IDE Settings", EditorStyles.boldLabel);
-        // Add settings here if needed
+
+        GUILayout.Label("Generate .csproj files for:");
+        EditorGUI.indentLevel++;
+        
+        ProjectGeneration.Settings.Embedded = EditorGUILayout.Toggle("Embedded packages", ProjectGeneration.Settings.Embedded);
+        ProjectGeneration.Settings.Local = EditorGUILayout.Toggle("Local packages", ProjectGeneration.Settings.Local);
+        ProjectGeneration.Settings.Registry = EditorGUILayout.Toggle("Registry packages", ProjectGeneration.Settings.Registry);
+        ProjectGeneration.Settings.Git = EditorGUILayout.Toggle("Git packages", ProjectGeneration.Settings.Git);
+        ProjectGeneration.Settings.BuiltIn = EditorGUILayout.Toggle("Built-in packages", ProjectGeneration.Settings.BuiltIn);
+        ProjectGeneration.Settings.LocalTarball = EditorGUILayout.Toggle("Local tarball", ProjectGeneration.Settings.LocalTarball);
+        ProjectGeneration.Settings.Unknown = EditorGUILayout.Toggle("Packages from unknown sources", ProjectGeneration.Settings.Unknown);
+        ProjectGeneration.Settings.PlayerProjects = EditorGUILayout.Toggle("Player projects", ProjectGeneration.Settings.PlayerProjects);
+
+        EditorGUI.indentLevel--;
+
+        if (GUILayout.Button("Regenerate project files"))
+        {
+            ProjectGeneration.SyncSolution();
+        }
+
+        GUILayout.EndVertical();
     }
 
     public bool OpenProject(string filePath, int line, int column)
