@@ -124,6 +124,23 @@ public class AntigravityScriptEditor : IExternalCodeEditor
 
     public bool OpenProject(string filePath, int line, int column)
     {
+        // [Anmol V] Fix: Ignore non-script assets so Unity handles them internally
+        // - .inputactions: Unity Input System Editor
+        // - .asmdef / .asmref: Unity Inspector (Assembly Definitions)
+        // - .uxml / .uss: Unity UI Builder
+        if (!string.IsNullOrEmpty(filePath))
+        {
+            string ext = Path.GetExtension(filePath);
+            if (ext.Equals(".inputactions", StringComparison.OrdinalIgnoreCase) ||
+                ext.Equals(".asmdef", StringComparison.OrdinalIgnoreCase) ||
+                ext.Equals(".asmref", StringComparison.OrdinalIgnoreCase) ||
+                ext.Equals(".uxml", StringComparison.OrdinalIgnoreCase) ||
+                ext.Equals(".uss", StringComparison.OrdinalIgnoreCase))
+            {
+                return false;
+            }
+        }
+
         // 1. Figure out which Antigravity binary / bundle we’re using
         string installation = CodeEditor.CurrentEditorInstallation;
 
