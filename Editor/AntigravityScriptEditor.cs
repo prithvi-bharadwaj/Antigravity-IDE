@@ -129,6 +129,14 @@ public class AntigravityScriptEditor : IExternalCodeEditor
         // - .inputactions: Unity Input System Editor
         // - .asmdef / .asmref: Unity Inspector (Assembly Definitions)
         // - .uxml / .uss: Unity UI Builder
+        // - .unity: Scene files
+        // - .asset: Generic Unity assets (ScriptableObjects, etc.)
+        // - .anim / .controller / .overrideController / .mask: Animation system
+        // - .mat: Materials
+        // - .prefab: Prefabs
+        // - .mixer: Audio mixers
+        // - .cubemap / .flare: Rendering assets
+        // - .guiskin: GUI skins
         if (!string.IsNullOrEmpty(filePath))
         {
             string ext = Path.GetExtension(filePath);
@@ -138,7 +146,17 @@ public class AntigravityScriptEditor : IExternalCodeEditor
                 ext.Equals(".uxml", StringComparison.OrdinalIgnoreCase) ||
                 ext.Equals(".uss", StringComparison.OrdinalIgnoreCase) ||
                 ext.Equals(".unity", StringComparison.OrdinalIgnoreCase) ||
-                ext.Equals(".asset", StringComparison.OrdinalIgnoreCase))
+                ext.Equals(".asset", StringComparison.OrdinalIgnoreCase) ||
+                ext.Equals(".anim", StringComparison.OrdinalIgnoreCase) ||
+                ext.Equals(".controller", StringComparison.OrdinalIgnoreCase) ||
+                ext.Equals(".overrideController", StringComparison.OrdinalIgnoreCase) ||
+                ext.Equals(".mask", StringComparison.OrdinalIgnoreCase) ||
+                ext.Equals(".mat", StringComparison.OrdinalIgnoreCase) ||
+                ext.Equals(".prefab", StringComparison.OrdinalIgnoreCase) ||
+                ext.Equals(".mixer", StringComparison.OrdinalIgnoreCase) ||
+                ext.Equals(".cubemap", StringComparison.OrdinalIgnoreCase) ||
+                ext.Equals(".flare", StringComparison.OrdinalIgnoreCase) ||
+                ext.Equals(".guiskin", StringComparison.OrdinalIgnoreCase))
             {
                 return false;
             }
