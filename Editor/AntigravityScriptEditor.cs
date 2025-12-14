@@ -11,36 +11,45 @@ using UnityEngine;
 public class AntigravityScriptEditor : IExternalCodeEditor
 {
     const string EditorName = "Antigravity";
-    static readonly string[] KnownPaths =
+    
+    static string LocalAppData => Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
+    static string ProgramFiles => Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles);
+
+    static string[] KnownPaths
     {
-        "/Applications/Antigravity.app",
-        "/Applications/Antigravity.app/Contents/MacOS/Antigravity"
-    };
+        get
+        {
+            // Windows Paths
+            var windowsPaths = new[]
+            {
+                Path.Combine(LocalAppData, "Programs", "Antigravity", "Antigravity.exe"),
+                Path.Combine(ProgramFiles, "Antigravity", "Antigravity.exe")
+            };
+
+            // macOS Paths
+            var macPaths = new[]
+            {
+                "/Applications/Antigravity.app",
+                "/Applications/Antigravity.app/Contents/MacOS/Antigravity"
+            };
+
+            return Application.platform == RuntimePlatform.WindowsEditor ? windowsPaths : macPaths;
+        }
+    }
 
     static AntigravityScriptEditor()
     {
         CodeEditor.Register(new AntigravityScriptEditor());
-        
+
         string current = EditorPrefs.GetString("kScriptsDefaultApp");
         if (IsAntigravityInstalled() && !current.Contains(EditorName))
         {
-            // Registration handles availability; user preference is respected unless explicitly changed.
         }
     }
 
     private static bool IsAntigravityInstalled()
     {
-        return KnownPaths.Any(p => File.Exists(p) || Directory.Exists(p));
-    }
-
-    private static string GetExecutablePath(string path)
-    {
-        if (path.EndsWith(".app"))
-        {
-            string executable = Path.Combine(path, "Contents", "MacOS", "Antigravity");
-            return File.Exists(executable) ? executable : path;
-        }
-        return path;
+        return KnownPaths.Any(File.Exists);
     }
 
     public CodeEditor.Installation[] Installations
@@ -50,7 +59,7 @@ public class AntigravityScriptEditor : IExternalCodeEditor
             var installations = new List<CodeEditor.Installation>();
             foreach (var path in KnownPaths)
             {
-                if (File.Exists(path) || Directory.Exists(path))
+                if (File.Exists(path) || (Application.platform == RuntimePlatform.OSXEditor && Directory.Exists(path)))
                 {
                     installations.Add(new CodeEditor.Installation
                     {
@@ -63,23 +72,18 @@ public class AntigravityScriptEditor : IExternalCodeEditor
         }
     }
 
-    public void Initialize(string editorInstallationPath)
-    {
-        // Perform any initialization here
-    }
+    public void Initialize(string editorInstallationPath) { }
 
     public void OnGUI()
     {
-        // Custom GUI for Preferences > External Tools
         GUILayout.Label("Antigravity IDE Settings", EditorStyles.boldLabel);
-        // Add settings here if needed
+        GUILayout.Label("Version: Windows/Mac Hybrid", EditorStyles.miniLabel);
     }
 
     public bool OpenProject(string filePath, int line, int column)
     {
         string installation = CodeEditor.CurrentEditorInstallation;
-        
-        // If no specific file, just open the project folder
+
         if (string.IsNullOrEmpty(filePath))
         {
             filePath = Directory.GetCurrentDirectory();
@@ -92,22 +96,28 @@ public class AntigravityScriptEditor : IExternalCodeEditor
         }
         else
         {
-            arguments = $"\"{filePath}:{line}:{column}\"";
+            arguments = $"-g \"{filePath}:{line}:{column}\"";
         }
 
         try
         {
             Process process = new Process();
-            
-            // Handle macOS .app bundles specifically
-            if (installation.EndsWith(".app") && Application.platform == RuntimePlatform.OSXEditor)
+
+            // --- WINDOWS LOGIC ---
+            if (Application.platform == RuntimePlatform.WindowsEditor)
+            {
+                process.StartInfo.FileName = installation; // Direct path to .exe
+                process.StartInfo.Arguments = arguments;
+            }
+            // --- MAC LOGIC ---
+            else if (installation.EndsWith(".app") && Application.platform == RuntimePlatform.OSXEditor)
             {
                 process.StartInfo.FileName = "/usr/bin/open";
                 process.StartInfo.Arguments = $"-a \"{installation}\" -n --args {arguments}";
             }
             else
             {
-                process.StartInfo.FileName = GetExecutablePath(installation);
+                process.StartInfo.FileName = installation;
                 process.StartInfo.Arguments = arguments;
             }
 
@@ -135,7 +145,7 @@ public class AntigravityScriptEditor : IExternalCodeEditor
 
     public bool TryGetInstallationForPath(string editorPath, out CodeEditor.Installation installation)
     {
-        if (editorPath.Contains("Antigravity"))
+        if (editorPath.ToLower().Contains("antigravity"))
         {
             installation = new CodeEditor.Installation
             {
